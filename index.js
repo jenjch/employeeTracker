@@ -49,7 +49,7 @@ function start() {
       ]
     })
     .then(function(answer) {
-      // based on user selection, run the function for showing all table data (joined), view individual dept/role tables, add to dept/role/employee tables, update employee role, or delete employee
+      // based on user selection, run the function for showing all table data (joined?), view individual dept/role tables, add to dept/role/employee tables, update employee role, or delete employee
       if (answer.firstAction === "View All Employees") {
         viewEmployees();
       } else if (answer.firstAction === "Add Department") {
@@ -74,9 +74,12 @@ function start() {
 
 // displays the current roster of employees and data combined from employee, department, role tables
 function viewEmployees() {
-  // need to query/get the table data from mySQL
-  // some sort of join?
-  // console.table?
+  connection.query("SELECT * FROM employee", function(err, results) {
+    if (err) throw err;
+    console.table(results);
+    // re-prompt the user for further actions by calling "start" function
+    start();
+})
 }
 
 // function to add a new department
@@ -109,7 +112,12 @@ function addDepartment() {
 // function to view all departments
 function viewDepartments() {
   // need to figure out how to query all department table data, then console log table
-
+  connection.query("SELECT * FROM department", function(err, results) {
+    if (err) throw err;
+    console.table(results);
+    // re-prompt the user for further actions by calling "start" function
+    start();
+})
 }
 
 // function to add a new role
@@ -142,7 +150,7 @@ function addRole() {
           title: answer.roleName,
           salary: answer.salary,
           // id should automatically update/increment starting at 1501
-          // need to figure out how to get department_id
+          // need to figure out how to get department_id (function)
         },
         function(err) {
           if (err) throw err;
@@ -156,7 +164,12 @@ function addRole() {
 
 // function to view all roles
 function viewRoles() {
-  // need to figure out how to query all department table data, then console log table
+  connection.query("SELECT * FROM role", function(err, results) {
+    if (err) throw err;
+    console.table(results);
+    // re-prompt the user for further actions by calling "start" function
+    start();
+})
 
 }
 
@@ -189,6 +202,9 @@ function addEmployee() {
           // "Laywer",
           // "Legal Lead"
           // need to dynamically generate list of roles from table for selection
+          // another inquire.prompt (query for list)
+          // choices:results
+          // select from roles 
         ]
       },
       {
@@ -225,7 +241,7 @@ function updateEmployeeRole() {
   // query the database for all employees
   connection.query("SELECT * FROM employees", function(err, results) {
     if (err) throw err;
-    // once you have the items, prompt the user for which they'd like to bid on
+    // once you have the list of employees, prompt user on which they'd like to update
   inquirer
     .prompt([
       {
