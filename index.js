@@ -6,7 +6,6 @@ const inquirer = require("inquirer");
 const cTable = require("console.table");
 // https://www.npmjs.com/package/console.table
 
-
 // global variable set just for the chooseDepartment function, which is used for the addRole function (function passed)
 let globalDept = [];
 
@@ -69,7 +68,7 @@ function start() {
       } else if (answer.firstAction === "Add Employee") {
         addEmployee();
       } else if (answer.firstAction === "Update Employee Role") {
-        console.log("update employee")
+        console.log("update employee");
         // updating employee role depends on selecting from available employees in database, and on selecting from availabel role
         updateEmployeeRole();
       } else if (answer.firstAction === "Remove Employee") {
@@ -80,26 +79,23 @@ function start() {
     });
 }
 
-
-function chooseDepartment (CBfunc) {
+function chooseDepartment(CBfunc) {
   connection.query("SELECT * FROM department", function(err, results) {
-    
     if (err) throw err;
     console.table(results);
     // let dep= results.each(x=>x.name);
     // set up empty array to add department name info
-    let deptArray =[];
+    let deptArray = [];
     // make sure globalDept variable matches with results retrieved from database
-    globalDept=results;
-    for (i = 0; i<results.length; i++) {
-
+    globalDept = results;
+    for (i = 0; i < results.length; i++) {
       // push/add each name to result
-      deptArray.push(results[i].dept_name)
+      deptArray.push(results[i].dept_name);
     }
 
     // pass to departmentNames below in addRole to use as choices; from above chooseDepartment(addRole);
     // call back function
-    CBfunc(deptArray)
+    CBfunc(deptArray);
   });
 }
 
@@ -111,7 +107,7 @@ function viewEmployees() {
     console.log(results);
     // re-prompt the user for further actions by calling "start" function
     start();
-})
+  });
 }
 
 // function to add a new department
@@ -119,16 +115,16 @@ function addDepartment() {
   // prompt for info about new department
   inquirer
     .prompt({
-        name: "deptName",
-        type: "input",
-        message: "What department would you like to add?"
-      })
+      name: "deptName",
+      type: "input",
+      message: "What department would you like to add?"
+    })
     .then(function(answer) {
       // after collecting answer, insert department into database
       connection.query(
         "INSERT INTO department SET ?",
         {
-          dept_name: answer.deptName,
+          dept_name: answer.deptName
           // id should automatically update/increment starting at 1001
         },
         function(err) {
@@ -149,12 +145,11 @@ function viewDepartments() {
     console.table(results);
     // re-prompt the user for further actions by calling "start" function
     start();
-})
+  });
 }
 
 // function to add a new role
 function addRole(departmentNames) {
-
   // prompt for info about new role
   inquirer
     .prompt([
@@ -178,15 +173,17 @@ function addRole(departmentNames) {
         name: "deptName",
         type: "list",
         message: "What department is this role in?",
-        choices:departmentNames
-        // function to generate list of department choices to select, then use department_id to add to table in below  
+        choices: departmentNames
+        // function to generate list of department choices to select, then use department_id to add to table in below
       }
     ])
     .then(function(answer) {
       // after collecting answer, insert role into database
       // write something to find dept_id
-     var deptObject = globalDept.find(element=>element.dept_name === answer.deptName);
-     console.log (deptObject); 
+      var deptObject = globalDept.find(
+        element => element.dept_name === answer.deptName
+      );
+      console.log(deptObject);
       connection.query(
         "INSERT INTO role SET ?",
         {
@@ -213,72 +210,83 @@ function viewRoles() {
     console.table(results);
     // re-prompt the user for further actions by calling "start" function
     start();
-})
-
+  });
 }
 
 // function to add new employees
 function addEmployee() {
   // prompt for info about new employee
-  inquirer
-    .prompt([
-      {
-        name: "employeeFirst",
-        type: "input",
-        message: "What is the employee's first name?"
-      },
-      {
-        name: "employeeLast",
-        type: "input",
-        message: "What is the employee's last name?"
-      },
-      {
-        name: "employeeRole",
-        type: "list",
-        message: "What is the employee's role?",
-        choices: [
-          // "Software Engineer",
-          // "Lead Engineer",
-          // "Marketing Rep",
-          // "Marketing Lead",
-          // "HR Rep",
-          // "HR Lead",
-          // "Laywer",
-          // "Legal Lead"
-          // need to dynamically generate list of roles from table for selection
-          // another inquire.prompt (query for list)
-          // choices:results
-          // select from roles 
-        ]
-      },
-      {
-        name: "manager",
-        type: "list",
-        message: "Who is the employee's manager?",
-        choices: []
-        // need to dynamically generate list of employees from table to select, then use the manager id to inset into table
-        // need to have a NULL option
-      }
-    ])
-    .then(function(answer) {
-      // when finished prompting, insert a new employee into the db with info
-      connection.query(
-        "INSERT INTO employee SET ?",
-        {
-          first_name: answer.employeeFirst,
-          last_name: answer.employeeLast
-          // role_id:,
-          // manager_id:
-          // need to get above info based on mySQL data
-        },
-        function(err) {
-          if (err) throw err;
-          console.log("Employee is added!");
-          // re-prompt the user for further actions by calling "start" function
-          start();
-        }
-      );
+
+  connection.query("SELECT * FROM role", function(err, results) {
+    const rolesObject = {};
+    if (err) throw err;
+    // console.log(results);
+    const rolesArray = results.map(role => {
+      rolesObject[role.title] = role.id;
+      return role.title;
     });
+    console.log(rolesObject);
+
+    connection.query("SELECT * FROM employee", function(err, results) {
+      const employeesObject = {};
+      if (err) throw err;
+      console.log(results);
+
+      const employeesArray = results.map(employee => {
+        employeesObject[employee.first_name + " " + employee.last_name] =
+          employee.id;
+        return employee.first_name + " " + employee.last_name;
+      });
+
+      inquirer
+        .prompt([
+          {
+            name: "employeeFirst",
+            type: "input",
+            message: "What is the employee's first name?"
+          },
+          {
+            name: "employeeLast",
+            type: "input",
+            message: "What is the employee's last name?"
+          },
+          {
+            name: "employeeRole",
+            type: "list",
+            message: "What is the employee's role?",
+            choices: rolesArray
+          },
+          {
+            name: "manager",
+            type: "list",
+            message: "Who is the employee's manager?",
+            choices: employeesArray
+            // need to dynamically generate list of employees from table to select, then use the manager id to inset into table
+            // need to have a NULL option
+          }
+        ])
+        .then(function(answer) {
+          // when finished prompting, insert a new employee into the db with info
+          console.log(rolesObject[answer.employeeRole]);
+          connection.query(
+            "INSERT INTO employee SET ?",
+            {
+              first_name: answer.employeeFirst,
+              last_name: answer.employeeLast,
+              role_id: rolesObject[answer.employeeRole]
+              // manager_id:
+              // need to get above info based on mySQL data
+            },
+            function(err) {
+              if (err) throw err;
+              console.log("Employee is added!");
+              // re-prompt the user for further actions by calling "start" function
+              start();
+            }
+          );
+        });
+    });
+  });
 }
 
 function updateEmployeeRole() {
@@ -288,23 +296,25 @@ function updateEmployeeRole() {
     if (err) throw err;
     console.log(results);
 
-    const employeesArray = results.map((employee) => {
-      employeesObject[employee.first_name + " " + employee.last_name] = employee.id
-      return employee.first_name + " " + employee.last_name
-    })
- 
+    const employeesArray = results.map(employee => {
+      employeesObject[employee.first_name + " " + employee.last_name] =
+        employee.id;
+      return employee.first_name + " " + employee.last_name;
+    });
+
     // console.log(employeesArray);
     // map runs the function on each element of the array
+    // nest this query inside the employee query
     connection.query("SELECT * FROM role", function(err, results) {
       const rolesObject = {};
       if (err) throw err;
-        // console.log(results);
-        const rolesArray = results.map((role) => {
-          rolesObject[role.title]= role.id
-          return role.title
-        })
-        console.log(rolesObject);
-        // once you have the list of employees, prompt user on which they'd like to update
+      // console.log(results);
+      const rolesArray = results.map(role => {
+        rolesObject[role.title] = role.id;
+        return role.title;
+      });
+      console.log(rolesObject);
+      // once you have the list of employees, prompt user on which they'd like to update
       inquirer
         .prompt([
           {
@@ -312,7 +322,7 @@ function updateEmployeeRole() {
             type: "list",
             message: "Which employee's role would you like to update?",
             choices: employeesArray
-          // need to figure out how to dynamically query/add employee choices from database (with both first and last name)
+            // need to figure out how to dynamically query/add employee choices from database (with both first and last name)
           },
           {
             name: "updateRole",
@@ -323,18 +333,19 @@ function updateEmployeeRole() {
         ])
         .then(function(answer) {
           console.log(rolesObject[answer.updateRole]);
-          console.log(employeesObject[answer.chooseEmployee])
+          console.log(employeesObject[answer.chooseEmployee]);
           // when finished prompting, update role of employee
           connection.query(
             // double check this update
             "UPDATE employee SET ? WHERE ?",
-            [{
-              role_id: rolesObject[answer.updateRole]
-              // based on name match? then need to insert role id match? 
-            },
-            {
-              id: employeesObject[answer.chooseEmployee]
-            }
+            [
+              {
+                role_id: rolesObject[answer.updateRole]
+                // based on name match? then need to insert role id match?
+              },
+              {
+                id: employeesObject[answer.chooseEmployee]
+              }
             ],
             function(err) {
               if (err) throw err;
@@ -344,34 +355,48 @@ function updateEmployeeRole() {
             }
           );
         });
-      });
+    });
   });
 }
 
 function removeEmployee() {
-  inquirer
-    .prompt({
-      name: "deleteEmployee",
-      type: "list",
-      message: "Which employee would you like to remove?",
-      choices: []
-      // need to dynamically add employee choices from get employees function
-    })
-    .then(function(answer) {
-      // when finished prompting, delete employee from database (wrap inquirer with SELECT FROM?)
-      connection.query(
-        // double check this delete
-        "DELETE FROM employee WHERE ?",
-        {
-          // need to get this info based on mySQL data
-          // based on name match? id match?
-        },
-        function(err) {
-          if (err) throw err;
-          console.log("Employee is deleted!");
-          // re-prompt the user for further actions by calling "start" function
-          start();
-        }
-      );
+  connection.query("SELECT * FROM employee", function(err, results) {
+    const employeesObject = {};
+    if (err) throw err;
+    console.log(results);
+
+    const employeesArray = results.map(employee => {
+      employeesObject[employee.first_name + " " + employee.last_name] =
+        employee.id;
+      return employee.first_name + " " + employee.last_name;
     });
+  
+    inquirer
+      .prompt({
+        name: "deleteEmployee",
+        type: "list",
+        message: "Which employee would you like to remove?",
+        choices: employeesArray
+        // need to dynamically add employee choices from get employees function
+      })
+      .then(function(answer) {
+        console.log(employeesObject[answer.deleteEmployee]);
+        // when finished prompting, delete employee from database (wrap inquirer with SELECT FROM?)
+        connection.query(
+          // double check this delete
+          "DELETE FROM employee WHERE ?",
+          {
+            // need to get this info based on mySQL data
+            // based on name match? id match?
+            id: employeesObject[answer.deleteEmployee],
+          },
+          function(err) {
+            if (err) throw err;
+            console.log("Employee is deleted!");
+            // re-prompt the user for further actions by calling "start" function
+            start();
+          }
+        );
+      });
+    });  
 }
