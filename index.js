@@ -410,18 +410,17 @@ function removeEmployee() {
         name: "deleteEmployee",
         type: "list",
         message: "Which employee would you like to remove?",
+        // uses above employees array data as choices
         choices: employeesArray
-        // need to dynamically add employee choices from get employees function
       })
       .then(function(answer) {
         console.log(employeesObject[answer.deleteEmployee]);
         // when finished prompting, delete employee from database (wrap inquirer with SELECT FROM?)
         connection.query(
-          // double check this delete
+          // delete from employee table
           "DELETE FROM employee WHERE ?",
           {
-            // need to get this info based on mySQL data
-            // based on name match? id match?
+            // id of selected employee to delete
             id: employeesObject[answer.deleteEmployee]
           },
           function(err) {
