@@ -41,7 +41,7 @@ The password for the mySQL connection is stored on a separate pw.js file and inc
 
 ## Deployment
 
-The completed application is available for download in Github: 
+The completed application is available for download on Github: 
 https://github.com/jenjch/employeeTracker
 
 Image of the application:
